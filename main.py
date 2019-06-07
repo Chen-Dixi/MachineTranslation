@@ -13,8 +13,22 @@ from tensorboardX import SummaryWriter
 from data import *
 from net import *
 from dixitool.pytorch.module import functional as dixiF
+writer = SummaryWriter()
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+def indexesFromSentence(lang, sentence):
+    return [lang.word2index[word] for word in sentence.split(' ')]
+
+
+def tensorFromSentence(lang, sentence):
+    indexes = indexesFromSentence(lang, sentence)
+    indexes.append(EOS_token)
+    return torch.tensor(indexes, dtype=torch.long, device=device).view(-1, 1)
+
+
+def tensorsFromPair(pair):
+    input_tensor = tensorFromSentence(input_lang, pair[0])
+    target_tensor = tensorFromSentence(output_lang, pair[1])
+    return (input_tensor, target_tensor)
 
 
 def train(input_tensor, target_tensor, encoder, decoder, encoder_optimizer, decoder_optimizer, criterion, max_length=MAX_LENGTH):
@@ -77,7 +91,7 @@ def train(input_tensor, target_tensor, encoder, decoder, encoder_optimizer, deco
     return loss.item() / target_length
 
 def trainIters(encoder, decoder, n_iters, print_every=1000, plot_every=100, learning_rate=0.01):
-    start = time.time()
+    
     plot_losses = []
     print_loss_total = 0  # Reset every print_every
     plot_loss_total = 0  # Reset every plot_every
@@ -112,8 +126,8 @@ def trainIters(encoder, decoder, n_iters, print_every=1000, plot_every=100, lear
 
 
 hidden_size = 256
-encoder1 = EncoderRNN(input_lang.n_words, hidden_size).to(device)
-attn_decoder1 = AttnDecoderRNN(hidden_size, output_lang.n_words, dropout_p=0.1).to(device)
+encoder1 = EncoderRNN(input_lang.n_words, hidden_size,device).to(device)
+attn_decoder1 = AttnDecoderRNN(hidden_size, output_lang.n_words,device, dropout_p=0.1).to(device)
 
 trainIters(encoder1, attn_decoder1, 75000, print_every=5000)
 dixiF.save_model('checkpoints', '', encoder1)
