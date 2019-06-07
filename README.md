@@ -1,8 +1,8 @@
 # MachineTranslation
-没什么技术含量，按照官方tutorial写的
+没任何技术含量，按照官方tutorial写的
 
 一个词一个词的进去
-RNN的维度我自己不好搞清楚,代码里添加了一些维度注释
+RNN的维度我自己不好搞清楚,我在代码里添加了一些维度相关的注释
 ```python
 class EncoderRNN(nn.Module):
     def __init__(self, input_size, hidden_size, device):
