@@ -1,5 +1,5 @@
 # MachineTranslation
-没任何技术含量，按照官方[tutorial](https://pytorch.org/tutorials/intermediate/seq2seq_translation_tutorial.html)写的代码。
+没任何技术含量，按照官方[tutorial](https://pytorch.org/tutorials/intermediate/seq2seq_translation_tutorial.html)写的代码。这份代码的笔记也记录在我的博客里面:[Seq-to-Seq Translation](https://chen-dixi.github.io/2019/06/08/machineTranslation-tutorial/)
 
 一个词一个词的进RNN
 RNN的维度我自己不好搞清楚，在代码里添加了一些维度相关的注释，在main.py文件中
