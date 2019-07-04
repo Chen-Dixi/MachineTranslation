@@ -117,4 +117,46 @@ def train(input_tensor, target_tensor, encoder, decoder, encoder_optimizer, deco
 
     return loss.item() / target_length
 ```
+## AttentionDecoder前馈代码细节
+```python
+def forward(self, input, hidden, encoder_outputs):
+    embedded = self.embedding(input).view(1, 1, -1)
+    embedded = self.dropout(embedded)
 
+    attn_weights = F.softmax(
+        self.attn(torch.cat((embedded[0], hidden[0]), 1)), dim=1)
+    attn_applied = torch.bmm(attn_weights.unsqueeze(0),
+                             encoder_outputs.unsqueeze(0))
+    #attn_applied 就是一个计算好的encoder_outputs加权平均，权值是通过当前input单词的embedding和hidden计算，有max_length个权值，而每项权值对应encoder_outputs的每一项
+    #加权平均又和 当前input的embedding合并，进一个全连接
+    output = torch.cat((embedded[0], attn_applied[0]), 1)
+    output = self.attn_combine(output).unsqueeze(0)#unsqueeze过后又变成(1,1,hidden_size)
+
+    output = F.relu(output)
+    output, hidden = self.gru(output, hidden)
+
+    #再经过一层输出为度为output_size的全联接层，log_softmax用于判断是哪一个单词。output_size对应这个目标语言记录的单词数量
+    output = F.log_softmax(self.out(output[0]), dim=1)
+    return output, hidden, attn_weights
+```
+
+## 翻译测试
+使用训练好的模型(checkpoints文件夹中)进行翻译测试，见`evaluate.py`,下面翻译的是`je suis fascine`->`i m fasinated .`
+
+```bash
+➜ python3 evaluate.py
+Reading lines...
+Read 135842 sentence pairs
+Trimmed to 10599 sentence pairs
+Counting words...
+Counted words:
+fra 4345
+eng 2803
+Data loaded!
+> je suis fascine .
+= i m fascinated .
+< i m fascinated . <EOS>
+```
+- Attention可视化
+
+![image](https://github.com/Chen-Dixi/MachineTranslation/blob/master/assets/attention.png)

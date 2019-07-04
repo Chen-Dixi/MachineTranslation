@@ -35,7 +35,7 @@ def train(input_tensor, target_tensor, encoder, decoder, encoder_optimizer, deco
     #参数input_tensor，target_tensor分别只有一句话，2维tensor，shape是（句子长度， 1）
 
     #encoder 的 0时刻的隐藏层
-    encoder_hidden = encoder.initHidden()
+    encoder_hidden = encoder.initHidden(device)
 
     #梯度置零
     encoder_optimizer.zero_grad()
@@ -126,10 +126,13 @@ def trainIters(encoder, decoder, n_iters, print_every=1000, plot_every=100, lear
 
 
 hidden_size = 256
-encoder1 = EncoderRNN(input_lang.n_words, hidden_size,device).to(device)
-attn_decoder1 = AttnDecoderRNN(hidden_size, output_lang.n_words,device, dropout_p=0.1).to(device)
-
+encoder1 = EncoderRNN(input_lang.n_words, hidden_size).to(device)
+attn_decoder1 = AttnDecoderRNN(hidden_size, output_lang.n_words, dropout_p=0.1).to(device)
+# train 75000 句话
 trainIters(encoder1, attn_decoder1, 75000, print_every=5000)
+# evaluate
+
+
 dixiF.save_model('checkpoints', '', encoder1)
 dixiF.save_model('checkpoints', '', attn_decoder1)
 writer.export_scalars_to_json("./all_scalars.json")

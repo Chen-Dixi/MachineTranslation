@@ -8,10 +8,10 @@ import torch
 # and a hidden state, and uses the hidden state for the next input word.
 
 class EncoderRNN(nn.Module):
-    def __init__(self, input_size, hidden_size, device):
+    def __init__(self, input_size=512, hidden_size=256):
         super(EncoderRNN, self).__init__()
         self.hidden_size = hidden_size
-        self.device = device
+        
         self.embedding = nn.Embedding(input_size, hidden_size)
         self.gru = nn.GRU(hidden_size, hidden_size)
 
@@ -21,8 +21,8 @@ class EncoderRNN(nn.Module):
         output, hidden = self.gru(output, hidden)
         return output, hidden
 
-    def initHidden(self):
-        return torch.zeros(1, 1, self.hidden_size, device=self.device)
+    def initHidden(self,device):
+        return torch.zeros(1, 1, self.hidden_size, device=device)
 
 class DecoderRNN(nn.Module):
     def __init__(self, hidden_size, output_size, device):
@@ -45,13 +45,12 @@ class DecoderRNN(nn.Module):
         return torch.zeros(1, 1, self.hidden_size, device=self.device)
 
 class AttnDecoderRNN(nn.Module):
-    def __init__(self, hidden_size, output_size,device, dropout_p=0.1, max_length=MAX_LENGTH):
+    def __init__(self, hidden_size=256, output_size=512, dropout_p=0.1, max_length=MAX_LENGTH):
         super(AttnDecoderRNN, self).__init__()
         self.hidden_size = hidden_size
         self.output_size = output_size
         self.dropout_p = dropout_p
         self.max_length = max_length
-        self.device = device
         self.embedding = nn.Embedding(self.output_size, self.hidden_size)
         self.attn = nn.Linear(self.hidden_size * 2, self.max_length)
         self.attn_combine = nn.Linear(self.hidden_size * 2, self.hidden_size)
@@ -79,6 +78,26 @@ class AttnDecoderRNN(nn.Module):
         output = F.log_softmax(self.out(output[0]), dim=1)
         return output, hidden, attn_weights
 
-    def initHidden(self):
-        return torch.zeros(1, 1, self.hidden_size, device=self.device)
+    def initHidden(self,device):
+        return torch.zeros(1, 1, self.hidden_size, device=device)
 
+def encoder(option,pretrained=False,pretrained_embedding=False,**kwargs):
+    model = EncoderRNN(**kwargs)
+    if pretrained:
+        model.load_state_dict(torch.load(option.model_path))
+
+    if pretrained_embedding:
+        model.embedding.weight.data.copy_(torch.from_numpy(np.load(option.embedding_path)['vector']))
+
+    return model
+
+
+def attnDecoder(option,pretrained=False,pretrained_embedding=False,**kwargs):
+    model = AttnDecoderRNN(**kwargs)
+    if pretrained:
+        model.load_state_dict(torch.load(option.model_path))
+
+    if pretrained_embedding:
+        model.embedding.weight.data.copy_(torch.from_numpy(np.load(option.embedding_path)['vector']))
+
+    return model

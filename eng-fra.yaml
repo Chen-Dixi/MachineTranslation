@@ -1,0 +1,21 @@
+model:
+  encoder:
+    pretrained: True
+    model_path: "checkpoints/EncoderRNN.pth"
+    pretrained_embedding: False
+    embedding_path: "/path/to/model"
+    static_embedding: False
+    hidden_size: 256
+  decoder:
+    pretrained: True
+    model_path: "checkpoints/AttnDecoderRNN.pth"
+    pretrained_embedding: False
+    embedding_path: "/path/to/model"
+    static_embedding: False
+    hidden_size: 256
+    #output_size: 如果不用域训练词向量的话，这个和Lang读取的语料库相关，所以不方便在这里设置
+    vocab_size: 299567
+data:
+  source: "eng"
+  target: "fra"
+  reverse: True
